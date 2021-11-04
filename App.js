@@ -1,29 +1,33 @@
 import { StatusBar } from "expo-status-bar";
-import React from "react";
-import {
-  StyleSheet,
-  Text,
-  TouchableHighlight,
-  TouchableOpacity,
-  // TouchableWithoutFeedback, 모든 이벤트는 포함하나, graphic change 없음
-  View,
-} from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { theme } from "./colors";
 
 export default function App() {
+  const [selected, setSelected] = useState(true);
+  const travel = () => setSelected(false);
+  const work = () => setSelected(true);
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
       <View style={styles.header}>
-        <TouchableOpacity>
-          <Text style={styles.btnText}>Work</Text>
+        <TouchableOpacity onPress={work}>
+          <Text
+            style={{ ...styles.btnText, color: selected ? "#eee" : theme.gray }}
+          >
+            Work
+          </Text>
         </TouchableOpacity>
-        <TouchableHighlight
-          onPress={() => console.log("pressed")}
-          activeOpacity={0.5}
-        >
-          <Text style={styles.btnText}>Travel</Text>
-        </TouchableHighlight>
+        <TouchableOpacity onPress={travel}>
+          <Text
+            style={{
+              ...styles.btnText,
+              color: !selected ? "#eee" : theme.gray,
+            }}
+          >
+            Travel
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -40,7 +44,7 @@ const styles = StyleSheet.create({
     marginTop: 100,
   },
   btnText: {
-    color: theme.gray,
+    color: "white",
     fontSize: 40,
     fontWeight: "600",
   },
