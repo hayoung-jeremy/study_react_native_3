@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -8,25 +8,42 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { theme } from "./colors";
+
+const STORAGE_KEY = "@toDos";
 
 export default function App() {
   const [working, setWorking] = useState(true);
   const [text, setText] = useState("");
   const [toDos, setToDos] = useState({});
 
+  useEffect(() => {
+    loadToDos();
+  }, []);
+
   const travel = () => setWorking(false);
   const work = () => setWorking(true);
   const onChangeText = (payload) => setText(payload);
-  const addToDo = () => {
+
+  const saveToDos = async (dataToSave) => {
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+  };
+
+  const loadToDos = async () => {
+    const str = await AsyncStorage.getItem(STORAGE_KEY);
+    setToDos(JSON.parse(str));
+  };
+  const addToDo = async () => {
     if (text === "") {
       return;
     }
-    const newToDos = { ...toDos, [Date.now()]: { text, work: working } };
+    const newToDos = { ...toDos, [Date.now()]: { text, working } };
     setToDos(newToDos);
+    saveToDos(newToDos);
     setText("");
   };
-  console.log(toDos);
+
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
@@ -35,7 +52,7 @@ export default function App() {
           <Text
             style={{
               ...styles.btnText,
-              color: working ? theme.white : theme.gray,
+              color: working ? theme.white : theme.gray500,
             }}
           >
             Work
@@ -45,7 +62,7 @@ export default function App() {
           <Text
             style={{
               ...styles.btnText,
-              color: !working ? theme.white : theme.gray,
+              color: !working ? theme.white : theme.gray500,
             }}
           >
             Travel
@@ -64,12 +81,14 @@ export default function App() {
         value={text}
         onSubmitEditing={addToDo}
       />
-      <ScrollView>
-        {Object.keys(toDos).map((key) => (
-          <View key={key} style={styles.toDo}>
-            <Text style={styles.toDoText}>{toDos[key].text}</Text>
-          </View>
-        ))}
+      <ScrollView style={styles.scrollContainer}>
+        {Object.keys(toDos).map((key) =>
+          toDos[key].working === working ? (
+            <View key={key} style={styles.toDo}>
+              <Text style={styles.toDoText}>{toDos[key].text}</Text>
+            </View>
+          ) : null
+        )}
       </ScrollView>
     </View>
   );
@@ -78,7 +97,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.background,
+    backgroundColor: theme.gray100,
     paddingHorizontal: 20,
   },
   header: {
@@ -86,30 +105,37 @@ const styles = StyleSheet.create({
     marginTop: 100,
   },
   btnText: {
-    color: "white",
+    color: theme.white,
     fontSize: 40,
     fontWeight: "600",
     marginRight: 12,
     borderRightWidth: 1,
-    borderRightColor: "white",
+    borderRightColor: theme.white,
   },
   input: {
-    backgroundColor: "#151515",
+    backgroundColor: theme.gray200,
     color: "#ccc",
     padding: 16,
     borderRadius: 8,
     fontSize: 20,
     marginVertical: 20,
   },
+  scrollContainer: {
+    borderTopWidth: 1,
+    borderTopColor: theme.gray300,
+    paddingTop: 20,
+  },
   toDo: {
-    backgroundColor: theme.toDoBg,
+    backgroundColor: theme.gray300,
     marginBottom: 12,
-    paddingVertical: 12,
+    paddingVertical: 16,
     paddingHorizontal: 20,
     borderRadius: 8,
+    minHeight: 40,
+    justifyContent: "center",
   },
   toDoText: {
-    color: "white",
+    color: theme.white,
     fontSize: 18,
     fontWeight: "500",
   },
