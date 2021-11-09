@@ -1,6 +1,7 @@
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,6 +10,8 @@ import {
   View,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Fontisto } from "@expo/vector-icons";
+
 import { theme } from "./colors";
 
 const STORAGE_KEY = "@toDos";
@@ -44,6 +47,21 @@ export default function App() {
     setText("");
   };
 
+  const deleteToDo = (key) => {
+    Alert.alert("해당 내용 삭제하기", "정말로 삭제하시겠습니까?", [
+      { text: "아니오", style: "destructive" },
+      {
+        text: "예",
+        onPress: () => {
+          const newToDos = { ...toDos };
+          // 위 객체는 아직 state 에 집어넣지 않았기 때문에, 아래와 같이 delete 연산자를 사용하여 직접 수정 가능함
+          delete newToDos[key];
+          setToDos(newToDos);
+          saveToDos(newToDos);
+        },
+      },
+    ]);
+  };
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
@@ -86,6 +104,15 @@ export default function App() {
           toDos[key].working === working ? (
             <View key={key} style={styles.toDo}>
               <Text style={styles.toDoText}>{toDos[key].text}</Text>
+
+              <TouchableOpacity
+                onPress={() => deleteToDo(key)}
+                style={styles.btnIcon}
+              >
+                <Text>
+                  <Fontisto name="trash" size={20} color={theme.gray700} />
+                </Text>
+              </TouchableOpacity>
             </View>
           ) : null
         )}
@@ -126,17 +153,29 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   toDo: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     backgroundColor: theme.gray300,
     marginBottom: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingVertical: 4,
+    paddingLeft: 20,
+    paddingRight: 6,
     borderRadius: 8,
     minHeight: 40,
-    justifyContent: "center",
   },
   toDoText: {
+    flex: 6,
     color: theme.white,
     fontSize: 18,
     fontWeight: "500",
+  },
+  btnIcon: {
+    width: 48,
+    height: 48,
+    flex: 1,
+    // backgroundColor: "red",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
