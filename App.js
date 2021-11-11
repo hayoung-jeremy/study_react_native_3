@@ -2,6 +2,7 @@ import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -35,7 +36,9 @@ export default function App() {
 
   const loadToDos = async () => {
     const str = await AsyncStorage.getItem(STORAGE_KEY);
-    setToDos(JSON.parse(str));
+    if (str !== null) {
+      setToDos(JSON.parse(str));
+    }
   };
   const addToDo = async () => {
     if (text === "") {
@@ -48,19 +51,30 @@ export default function App() {
   };
 
   const deleteToDo = (key) => {
-    Alert.alert("해당 내용 삭제하기", "정말로 삭제하시겠습니까?", [
-      { text: "아니오", style: "destructive" },
-      {
-        text: "예",
-        onPress: () => {
-          const newToDos = { ...toDos };
-          // 위 객체는 아직 state 에 집어넣지 않았기 때문에, 아래와 같이 delete 연산자를 사용하여 직접 수정 가능함
-          delete newToDos[key];
-          setToDos(newToDos);
-          saveToDos(newToDos);
+    if (Platform.OS === "web") {
+      const ok = confirm("정말로 삭제하시겠습니까?");
+      if (ok) {
+        const newToDos = { ...toDos };
+        // 위 객체는 아직 state 에 집어넣지 않았기 때문에, 아래와 같이 delete 연산자를 사용하여 직접 수정 가능함
+        delete newToDos[key];
+        setToDos(newToDos);
+        saveToDos(newToDos);
+      }
+    } else {
+      Alert.alert("해당 내용 삭제하기", "정말로 삭제하시겠습니까?", [
+        { text: "아니오", style: "destructive" },
+        {
+          text: "예",
+          onPress: () => {
+            const newToDos = { ...toDos };
+            // 위 객체는 아직 state 에 집어넣지 않았기 때문에, 아래와 같이 delete 연산자를 사용하여 직접 수정 가능함
+            delete newToDos[key];
+            setToDos(newToDos);
+            saveToDos(newToDos);
+          },
         },
-      },
-    ]);
+      ]);
+    }
   };
   return (
     <View style={styles.container}>
@@ -69,7 +83,10 @@ export default function App() {
         <TouchableOpacity onPress={work}>
           <Text
             style={{
-              ...styles.btnText,
+              color: theme.white,
+              fontSize: 40,
+              fontWeight: "600",
+              marginRight: 12,
               color: working ? theme.white : theme.gray500,
             }}
           >
@@ -79,7 +96,10 @@ export default function App() {
         <TouchableOpacity onPress={travel}>
           <Text
             style={{
-              ...styles.btnText,
+              color: theme.white,
+              fontSize: 40,
+              fontWeight: "600",
+              marginRight: 12,
               color: !working ? theme.white : theme.gray500,
             }}
           >
@@ -130,14 +150,6 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     marginTop: 100,
-  },
-  btnText: {
-    color: theme.white,
-    fontSize: 40,
-    fontWeight: "600",
-    marginRight: 12,
-    borderRightWidth: 1,
-    borderRightColor: theme.white,
   },
   input: {
     backgroundColor: theme.gray200,
